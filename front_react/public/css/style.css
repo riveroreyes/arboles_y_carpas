@@ -7,8 +7,8 @@ div#errors {
   white-space: pre-wrap;
 }
 
-div#principal{
-  padding-top: 50px !important;  
+div.principal{
+  margin-top: 50px !important;  
 }
 
 table{

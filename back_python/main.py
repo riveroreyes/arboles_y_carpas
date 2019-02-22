@@ -22,44 +22,12 @@ def procesar_lista():
 	if dimension < 6 or dimension > 200:
 		return jsonify( {"error":"El ancho del puzzle debe estar entre 6 y 200"} )
 
-	v1 = leer_procesar_validar( dimension , True, [], True)
+	v1 = leer_procesar_validar( dimension , [], True)
 	return jsonify(v1)
 
 #----------------------------------------------------------------------------------------------------
-#Vista principal
-@app.route('/', methods=["GET"])
-def inicio():
-	return render_template(	'inicio.html',titulo="Practicas LeafNoise")
-
-#----------------------------------------------------------------------------------------------------
-#Llamada desde vista html
-@app.route('/puzzle01', methods=["GET","POST"])
-def puzzle01():
-
-	#Obtener los datos
-	r,mensaje = '',''
-	resp,cols,rows,lista = [],[],[],[]
-	dimension = 6
-
-	if request.form.get('solo_puzzle') != None:
-		#Metodo POST
-
-		dimension =  int( request.form.get('dimension') )
-
-		if dimension < 6 or dimension > 200:
-			dimension = 6 
-
-		#procesoMasivo(dimension, 10)
-
-		return leer_procesar_validar( dimension , True)
-
-	else:
-		#Metodo GET
-		return render_template(	'puzzle01.html',titulo="React-test",	resp= [[0 for col in range(6)] for row in range(6)],	cols=[0 for col in range(6)],	rows=[0 for col in range(6)],	lista = [[1 for col in range(8)] for row in range(8)],	mensaje = mensaje,	dimension = 6 )
-
-#----------------------------------------------------------------------------------------------------
 #Ejecutar proceso de lectura, proceso y validacion del puzzle
-def leer_procesar_validar( dimension , vista = True, errores = [], isJson = False  ):
+def leer_procesar_validar( dimension , errores = [], isJson = False  ):
 
 	r,mensaje = '',''
 	resp,cols,rows,lista = [],[],[],[]
@@ -72,10 +40,6 @@ def leer_procesar_validar( dimension , vista = True, errores = [], isJson = Fals
 	resp = datos['map']['data']
 	cols = datos['map']['cols']
 	rows = datos['map']['rows']
-
-	# resp = [[0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0], [2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 2, 0, 0], [0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 2, 0]] 
-	# cols = [3, 1, 5, 0, 3, 3, 2, 2, 5, 1, 2, 2, 2, 3, 3, 2] 
-	# rows= [1, 5, 1, 4, 3, 1, 4, 2, 3, 1, 5, 0, 3, 1, 3, 2]
 
 	print('\n\nresp =',resp,'\ncols =', cols,'\nrows=',rows,'\n\n')
 
@@ -104,7 +68,9 @@ def leer_procesar_validar( dimension , vista = True, errores = [], isJson = Fals
 	lista = asignarCarpasEnFilas(lista, rows, cols) 	#asignar las carpas por fila que sean inequivocas
 	lista = asignarCarpasEnColumnas(lista, rows, cols) 	#asignar las carpas por columna que sean inequivocas
 	lista = asignarCarpasInequivocas(lista, rows, cols) #asignar carpas a arboles que solo tengan un campo en vacio que sean inequivocas
-	lista = ejecutarEnsayoYError(lista, rows, cols) 
+	
+	if dimension <= 15:
+		lista = ejecutarEnsayoYError(lista, rows, cols) 
 
 	#Eliminar las filas y columnas agregadas para el analisis
 	resp = list( map( lambda x:list( map( lambda y:y ,x[1:-1] ) ) , lista[1:-1]  )  )
@@ -138,13 +104,10 @@ def leer_procesar_validar( dimension , vista = True, errores = [], isJson = Fals
 	if isJson:
 		return {
 			"resp":resp,
-			"cols":cols,
-			"rows":rows,
+			"cols":cols[1:-1],
+			"rows":rows[1:-1],
 			"valid":validado
 		}
-
-	if vista:
-		return render_template(	'puzzle01.html',titulo="React-test",	resp= resp,	cols=cols[1:-1],	rows=rows[1:-1],	lista = lista,	mensaje = mensaje,	dimension = dimension, mensaje_validacion = mensaje_validacion  )
 
 #----------------------------------------------------------------------------------------------------
 #manejar los errores de las paginas
@@ -523,7 +486,7 @@ def procesoMasivo(dimension, mapas):
 	errores = []
 	for i in range(0,mapas):
 		print( 'Mapa: {}'.format(i+1) )
-		leer_procesar_validar( dimension , False, errores )
+		leer_procesar_validar( dimension , errores )
 
 	print('ERRORES: ',end='')
 	if len(errores) == 0:

@@ -16,7 +16,8 @@ class Fila extends React.Component {
 
     return(
       <tr>
-      {imagenes}
+        <td><b> {this.props.row} </b></td>
+        {imagenes}
       </tr>
     )
   }
