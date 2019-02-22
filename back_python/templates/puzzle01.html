@@ -1,0 +1,61 @@
+{% extends "partials/base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row"  style="padding-top: 50px;">
+        <div class="col">
+            <div class="row">
+                <table border="1">
+
+                    <thead>
+                        <th></th>
+                    {%for x in cols %}
+                        <th>{{ x }}</th>
+                    {% endfor %}
+                    </thead>
+
+                	{%for x in resp %}
+
+                		<tr>
+                            <td><b>{{ rows[ loop.index -1 ] }}</b></td>
+                            {% for y in x %}
+                                <td> <img src="
+
+                                    {% if y == 1 %}
+                                        {{ url_for('static', filename='img/grass.png')  }}
+                                    {% elif y == 2 %}
+                                        {{ url_for('static', filename='img/tree.png')  }}
+                                    {% elif y == 3 %}
+                                        {{ url_for('static', filename='img/tent.png')  }}
+                                    {% else %}
+                                        {{ y }}
+                                    {% endif %}    
+
+                                    " alt=""></td>
+                            {% endfor %}
+
+                        </tr>
+
+                    {% endfor %}
+                    <caption style="text-align: center;">
+                        {{ mensaje }}
+                        <h5>{{ mensaje_validacion }}</h5>
+                    </caption>
+                <table>
+            </div> 
+        </div>
+
+        <div class="col-1">
+            &nbsp;
+        </div>
+
+        <div class="col-4">
+            <div id="root"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
