@@ -2,16 +2,19 @@ import React from 'react';
 import Fila from '../../components/Fila/Fila';
 
 class Formulario extends React.Component {
+
     constructor(props) {
         super(props);
 
+        const dimen = 10;
+
         this.state = {
-            dimension: '10',
-            solo_puzzle: '1',
-            resp: [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],
-            cols: [0,0,0,0,0,0,0,0,0,0],
-            rows: [0,0,0,0,0,0,0,0,0,0],
-            items: [],
+            dimension: dimen,
+            url: 'http://0.0.0.0:5000/api/procesar_lista',
+            resp: [...Array(dimen)].map(x=>Array(dimen).fill(0)),    //new Array(dimen).fill(0).map(() => new Array(dimen).fill(0)),
+            cols: [...Array(dimen)].map(x=>0),                       //new Array(dimen),
+            rows: [...Array(dimen)].map(x=>0),                       //new Array(dimen),
+            cuerpo: [],
             columnas: [],
             filas: []
         };
@@ -26,26 +29,32 @@ class Formulario extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
-    componentWillMount() {
+    /*-----------------------------------------------------------------------------------
+    * Establece el valor de los estados en base a los vectores resp, cols y rows.
+    */
+    setEstados(){
 
         let intIndex = 1000;
         let arr = [];
         let columna = [<th key={intIndex++}></th>];
-        var dato = this.state.rows;
 
-        this.state.resp.forEach( function(item, index){
-            arr.push(<Fila key={index} item={item} linea={index} row={dato[index]} />);
-        });
+        this.state.resp.forEach( (item, index) => 
+            arr.push(<Fila key={index} item={item} linea={index} row={  this.state.rows[index] } />)
+        );
 
-        this.state.cols.forEach(function(elem, index){
-            columna.push(<th key={intIndex++}>{elem}</th>);
-        });
+        this.state.cols.forEach( (elem, index) =>
+            columna.push(<th key={intIndex++}>{elem}</th>)
+        );
 
-        this.setState( {
-            items: arr,
+        this.setState({
+            cuerpo: arr,
             columnas: columna
-        } )
+        });
+        
+    }
 
+    componentWillMount() {
+        this.setEstados();
     }
 
     handleChange(event) {
@@ -55,17 +64,13 @@ class Formulario extends React.Component {
     submit(e){
         e.preventDefault()
 
-        var data = {
-            dimension: parseInt( e.target.dimension.value )
-        }
-
-        fetch('http://0.0.0.0:5000/api/procesar_lista', {
+        fetch( this.state.url, {
             method: 'POST',
             headers: {'Content-Type':'application/json'}, 
-            body: JSON.stringify(data)
+            body: JSON.stringify( { dimension: parseInt( e.target.dimension.value ) }  )
         
         }).then((response) => {
-            return response.json()
+            return response.json();
         
         }).then((respuesta) => {
             this.setState({ 
@@ -75,35 +80,9 @@ class Formulario extends React.Component {
             })
 
             if (this.state.resp.length > 0) {
-              
-                let arr = [];
-                let dato = this.state.rows;
-
-                this.state.resp.forEach(function(item, index){
-                    arr.push(<Fila key={index} item={item} linea={index}  row={dato[index]} />);
-                });
-
-                let intIndex = 1000;
-                let columna = [<th key={intIndex++}></th>];
-
-                console.log(this.state.cols);
-
-                this.state.cols.forEach(function(elem, index){
-                    columna.push(<th key={intIndex++}>{elem}</th>);
-                });
-
-                this.setState( {
-                    items: arr,
-                    columnas: columna
-                })
-
-            } else {
-                return <p className="text-center">No fue posible obtener la consulta...</p> 
+                this.setEstados();
             }
-
-
-
-        })
+        });
 
     }
 
@@ -112,6 +91,7 @@ class Formulario extends React.Component {
             <div className="container">
                 <div className="row principal">
                     <table border="1">
+
                         <thead>
                             <tr>
                             {this.state.columnas}
@@ -119,15 +99,15 @@ class Formulario extends React.Component {
                         </thead>
 
                         <tbody>
-                            {this.state.items}
+                            {this.state.cuerpo}
                         </tbody>
+
                     </table>
                 </div>
 
                 <div className="row principal">
                     <div className="col-12 col-sm-6 col-md-3">
                         <form onSubmit={this.submit}  method="POST">
-                            <input type="hidden" name="solo_puzzle" value={this.state.solo_puzzle} />
                             <div className="form-group row">
                                 <label className="col-12 col-sm-3 col-form-label">Tamaño:</label>
                                 <div className="col-12 col-sm-9"  style={this.divStyle}>

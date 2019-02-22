@@ -16,6 +16,7 @@ table{
 }
 
 td, th{
+  width: 30px !important;
   text-align: center;
   border: 1px solid #a0a0a0 !important;
   padding: 0px !important;
