@@ -1,89 +1,50 @@
 import React from 'react';
-import Fila from '../../components/Fila/Fila';
+//import Fila from '../../components/Fila/Fila';
+
+import Config from "../../config/config";
 
 class Formulario extends React.Component {
-
     constructor(props) {
         super(props);
 
         const dimen = 10;
-
         this.state = {
             dimension: dimen,
-            url: 'http://0.0.0.0:5000/api/procesar_lista',
             resp: [...Array(dimen)].map(x=>Array(dimen).fill(0)),    //new Array(dimen).fill(0).map(() => new Array(dimen).fill(0)),
             cols: [...Array(dimen)].map(x=>0),                       //new Array(dimen),
             rows: [...Array(dimen)].map(x=>0),                       //new Array(dimen),
-            cuerpo: [],
-            columnas: [],
-            filas: []
         };
-
 
         this.divStyle = {
             paddingRight: '0px',
             marginRight: '0px'
         };
-
-        //this.handleChange = this.handleChange.bind(this);
-        //this.submit = this.submit.bind(this);
-    }
-
-    /*-----------------------------------------------------------------------------------
-    * Establece el valor de los estados en base a los vectores resp, cols y rows.
-    */
-    setEstados(){
-
-        let intIndex = 1000;
-        let arr = [];
-        let columna = [<th key={intIndex++}></th>];
-
-        this.state.resp.forEach( (item, index) => 
-            arr.push(<Fila key={index} item={item} linea={index} row={  this.state.rows[index] } />)
-        );
-
-        this.state.cols.forEach( (elem, index) =>
-            columna.push(<th key={intIndex++}>{elem}</th>)
-        );
-
-        this.setState({
-            cuerpo: arr,
-            columnas: columna
-        });
-        
-    }
-
-    componentWillMount() {
-        this.setEstados();
     }
 
     handleChange(event) {
         this.setState({dimension: event.target.value});
     }
 
-    submit(e){
+    submit(e) {
         e.preventDefault()
 
-        fetch( this.state.url, {
+        fetch( Config.url, {
             method: 'POST',
             headers: {'Content-Type':'application/json'}, 
             body: JSON.stringify( { dimension: parseInt( e.target.dimension.value ) }  )
-        
         }).then((response) => {
             return response.json();
-        
         }).then((respuesta) => {
             this.setState({ 
                 resp: respuesta.resp, 
                 cols: respuesta.cols, 
                 rows: respuesta.rows
             })
-
-            if (this.state.resp.length > 0) {
-                this.setEstados();
-            }
         });
+    }
 
+    onClickCell(i, j) {
+    	console.log(i, j);
     }
 
     render() {
@@ -91,27 +52,43 @@ class Formulario extends React.Component {
             <div className="container">
                 <div className="row principal">
                     <table border="1">
-
-                        <thead>
-                            <tr>
-                            {this.state.columnas}
-                            </tr>
-                        </thead>
-
                         <tbody>
-                            {this.state.cuerpo}
+                            <tr>
+                            	<td>&nbsp;</td>
+                            	{this.state.cols.map((elem, index) => <td key={index}>{elem}</td>)}
+                            </tr>
+                            {this.state.resp.map((elem, j) => {
+                            	return (<tr key={j}>
+                            			<td>{this.state.rows[j]}</td>
+                            			{elem.map((elem, i) => {
+                            				return (
+                            					<td 
+                            						key={i} 
+                            						onClick={() => this.onClickCell(i, j)}>
+                            						<span>{this.renderImage(elem)}</span>
+                            					</td>
+                            				);
+                            			} )}
+                            		</tr>);
+                            })}
                         </tbody>
-
                     </table>
                 </div>
 
                 <div className="row principal">
                     <div className="col-12 col-sm-6 col-md-3">
-                        <form onSubmit={(event) => this.submit(event)}  method="POST">
+                        <form onSubmit={(e) => this.submit(e)}  method="POST">
                             <div className="form-group row">
                                 <label className="col-12 col-sm-3 col-form-label">Tamaño:</label>
                                 <div className="col-12 col-sm-9"  style={this.divStyle}>
-                                    <input type="number" value={this.state.dimension} onChange={this.handleChange}  name="dimension"  className="form-control" min="6" max="200" />
+                                    <input 
+                                    	type="number" 
+                                    	value={this.state.dimension} 
+                                    	onChange={(e) => this.handleChange(e)}  
+                                    	name="dimension"  
+                                    	className="form-control" 
+                                    	min="6" 
+                                    	max="200" />
                                 </div>
                             </div>
                             <div className="row">
@@ -123,6 +100,21 @@ class Formulario extends React.Component {
 
             </div>
         );
+    }
+
+    renderImage(elem) {
+	    let imagen = "";
+	    if(elem === 1){
+	      imagen = 'img/grass.png';
+	    }else if(elem === 2){
+	      imagen = 'img/tree.png';
+	    }else if(elem === 3){
+	      imagen = 'img/tent.png';
+	    }else{
+	      imagen = 'img/blanco.png';
+	    }
+
+	    return <img src={imagen} alt="" />;
     }
 }
 

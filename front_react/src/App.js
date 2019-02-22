@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import Formulario from './components/Formulario/Formulario';
+import Formulario2 from './components/formulario2/formulario2';
 
 
 
@@ -11,7 +11,7 @@ class App extends Component {
 
     render() {
         return (
-            <Formulario />
+            <Formulario2 />
         )
     }
 
