@@ -42,10 +42,6 @@ def leer_procesar_validar( dimension , errores = [], isJson = False  ):
 	cols = datos['map']['cols']
 	rows = datos['map']['rows']
 
-	resp = [[0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0], [0, 2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0], [0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0], [2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] 
-	cols = [4, 3, 3, 2, 2, 5, 0, 4, 3, 2, 4, 1, 1, 4, 1, 4, 1, 4, 3, 3] 
-	rows= [3, 2, 5, 2, 1, 4, 3, 1, 4, 2, 3, 2, 3, 1, 6, 0, 4, 0, 7, 1] 
-
 	print('\n\nresp =',resp,'\ncols =', cols,'\nrows=',rows,'\n\n')
 
 	#Trasponer filas con columnas, y aumentar en n+1, n+1 la matrix
@@ -80,7 +76,7 @@ def leer_procesar_validar( dimension , errores = [], isJson = False  ):
 	lista = asignarCarpasEnColumnas(lista, rows, cols) 	#asignar las carpas por columna que sean inequivocas
 	lista = asignarCarpasInequivocas(lista, rows, cols) #asignar carpas a arboles que solo tengan un campo en vacio que sean inequivocas
 
-	if dimension <= 30:
+	if dimension <= 15:
 		lista = ejecutarEnsayoYError(lista, rows, cols) 
 
 	#Eliminar las filas y columnas agregadas para el analisis y preparar la validacion
@@ -302,10 +298,62 @@ def asignarCarpasInequivocas(lista, rows, cols):
 #Ensayo y error con celdas hasta determinar la primera respuesta correcta
 def ejecutarEnsayoYError(lista, rows, cols):
 
-	#conseguir conbinaciones de columnas posibles
-	history = dict()
+	veces = 0
+	probablesRevisadas = []
 
-	getCombinacionesColumnas( lista, rows, cols );
+	combinacionesFilasColumnas = getCombinacionesFilasColumnas(lista, rows, cols)
+
+
+	for probables in combinacionesFilasColumnas:
+		print("CANTIDAD DE INTENTOS: {} de {}".format(veces+1, len(combinacionesFilasColumnas)  ) ) 
+
+		if(len(probables) == 0):
+			break
+
+		mensaje = ''
+		history = []
+		busqueda = 0
+		while len(probables) > 0:
+		
+			procesar =	probables.pop(0)
+			posicionesTotalesRevisadas = []
+			filaInicio, columnaInicio = 1,1
+
+			history = [x[:] for x in lista]
+
+			#llenar las probables
+			continuar = 1
+			for elem in procesar:
+	
+				if isPosibleColocarCarpaSola(lista, elem[0], elem[1]):
+					lista[ elem[0] ][ elem[1] ] = 3 # es una carpa
+					lista = rodearDeArenaCarpa(lista, elem[0], elem[1], rows, cols, True)
+				else:
+					lista = [x[:] for x in history]
+					continuar = 0
+					break;
+
+			if continuar == 1:
+				busqueda = ensayoYError(lista, rows, cols, posicionesTotalesRevisadas, filaInicio, columnaInicio);
+				if busqueda == 1: 
+					break
+				elif busqueda == -1:
+					mensaje = 'NO SE DETERMINO UNA SOLUCION POSIBLE EN ESTA BUSQUEDA'
+					break
+				else:
+					lista = [x[:] for x in history]
+
+		if( verificarTodoOk(lista, rows, cols) == 1):
+			break
+		else:
+			#print('HAY QUE VOLVER A PROCESAR-------------------------------------------------')
+			veces = veces + 1
+			if len(posicionesTotalesRevisadas) > 1:
+				if lista[ posicionesTotalesRevisadas[1][0] ][ posicionesTotalesRevisadas[1][1]  ] == 0:
+					filaInicio  = posicionesTotalesRevisadas[1][0]
+					columnaInicio = posicionesTotalesRevisadas[1][1]
+			else:
+				lista = [x[:] for x in history]
 
 	return lista
 
@@ -323,6 +371,8 @@ def get_num_from_string(string):
 # Obtener las combinaciones n! / m! (n-m)!, de un array numerado 0... hasta n
 def getTodosLosGrupos(elementos, conjuntos):
 	result = []
+	print(elementos)
+	print(conjuntos)
 	for pareja in combinations(elementos, conjuntos):
 		a = []
 		a.append(pareja)
@@ -354,42 +404,6 @@ def getCombinacionesFilasColumnas(lista, rows, cols):
 			arr.append(	getCombinacionesXY( lista, [x,y] )	)
 
 	return arr
-
-#----------------------------------------------------------------------------------------------------
-# Determinar las combinaciones de las columnas.
-def getCombinacionesColumnas(lista, rows, cols):
-
-	resCol = []
-	combinaciones = dict()
-	# Determinar la relacion en las columnas entre carpas a colocar, carpas colocadas y espacios disponibles 
-	for y in range(1, len(lista)-1):
-		columna = [row[y] for row in lista] 
-		if cols[y] > 0:  
-			resCol.append( [ 
-				y-1, #pos columna
-				cols[y], #lo que se pide
-				columna.count(0), #cantidad de ceros mas las carpas
-				columna.count(3), #cantidad de arboles
-				])
-
-			result = []
-			for pareja in combinations( posiciones , cols[y] - columna.count(3) ): # [1,2,3] (m) para formar grupos de m
-				result.append( pareja ) #llevar tupla a array
-
-		combinaciones[str(y)] = result
-
-	print(resCol)
-	pprint(combinaciones)
-
-
-	'''
-	arr = []
-	for x in resRow:
-		for y in resCol:
-			arr.append(	getCombinacionesXY( lista, [x,y] )	)
-	return arr
-	'''
-
 
 #----------------------------------------------------------------------------------------------------
 def getCombinacionesXY( lista, resultado ):

@@ -1,6 +1,4 @@
 import React from 'react';
-//import Fila from '../../components/Fila/Fila';
-
 import Config from "../../config/config";
 
 class Formulario extends React.Component {
